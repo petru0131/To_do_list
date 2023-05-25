@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do List</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+  <style>
+    body {
+      font-family: Roboto, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 3px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    li button {
+      margin-left: auto;
+      margin-right: 10px;
+    }
+
+    .done {
+      text-decoration: line-through;
+    }
+
+    .done .done-button {
+      background-color: #f44336;
+    }
+
+    .undone .done-button {
+      background-color: #4caf50;
+    }
+    .navbar {
+      text-align: center;
+      background-color: #f5f5f5;
+      padding: 10px;
+    }
+
+    .navbar button {
+      margin: 5px;
+      padding: 10px 20px;
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="navbar">
+    <button onclick="navigateTo('/')">Home</button>
+    <button onclick="navigateTo('/to-do')">To-Do</button>
+    <button onclick="navigateTo('/done')">Done</button>
+  </div>
+
+  <div class="container">
+    <h1>To-Do List</h1>
+
+    <form id="todo-form">
+      <input type="text" id="todo-input" placeholder="Add a new todo">
+      <button type="button" onclick="addTodo()">Add</button>
+    </form>
+
+    <ul id="todo-list">
+      <!-- Dynamic todo items will be added here -->
+    </ul>
+
+    <button id="clear-button" onclick="clearTodos()">Clear All</button>
+  </div>
+
+  <script>
+     function navigateTo(route) {
+      window.location.href = route;
+    }
+
+    const todoInput = document.getElementById('todo-input');
+    const todoList = document.getElementById('todo-list');
+    const clearButton = document.getElementById('clear-button');
+
+    let todos = JSON.parse(localStorage.getItem('undone')) || [];
+    let completedTodos = JSON.parse(localStorage.getItem('doneTodos')) || [];
+
+    function displayTodos() {
+      todoList.innerHTML = '';
+
+      todos.forEach((todo, index) => {
+       
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+          <span class="todo-text ${todo.done ? 'done' : ''}">${todo.text}</span>
+          <button class="delete-button" onclick="deleteTodoInTodoRoute(${index})">Delete</button>
+          <button class="update-button" onclick="updateTodoPrompt(${index})">Update</button>
+          <button class="done-button" onclick="toggleDoneInDoneRoute(${index})">Done</button>
+        `;
+        todoList.appendChild(listItem);
+        
+      });
+
+      completedTodos.forEach((todo, index) => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `
+          <span class="todo-text done">${todo.text}</span>
+          <button class="delete-button" onclick="deleteTodoInDoneRoute(${index})">Delete</button>
+          <button class="update-button" onclick="updateCompletedPrompt(${index})">Update</button>
+          <button class="done-button" onclick="toggleDoneInTodoRoute(${index})">Undone</button>
+        `;
+        todoList.appendChild(listItem);
+      });
+    }
+    
+
+    function saveTodosToLocalStorage() {
+      localStorage.setItem('undone', JSON.stringify(todos));
+    }
+
+    function saveCompletedTodosToLocalStorage() {
+      localStorage.setItem('doneTodos', JSON.stringify(completedTodos));
+    }
+
+    function addTodo() {
+      const todoText = todoInput.value.trim();
+
+      if (todoText !== '') {
+        const newTodo = {
+          text: todoText,
+          done: false
+        };
+
+        todos.push(newTodo);
+        saveTodosToLocalStorage();
+
+        todoInput.value = '';
+        displayTodos();
+      }
+    }
+
+    function deleteTodoInTodoRoute(index) {
+      todos.splice(index, 1);
+      saveTodosToLocalStorage();
+      displayTodos();
+    }
+
+    function deleteTodoInDoneRoute(index) {
+      completedTodos.splice(index, 1);
+      saveCompletedTodosToLocalStorage();
+      displayTodos();
+    }
+
+    function updateTodoPrompt(index) {
+      const newText = prompt('Enter new text:');
+      if (newText !== null) {
+        updateTodoText(index, newText);
+      }
+    }
+
+    function updateCompletedPrompt(index) {
+      const newText = prompt('Enter new text:');
+      if (newText !== null) {
+        updateCompletedText(index, newText)
+      }
+    }
+
+    function updateTodoText(index, newText) {
+      todos[index].text = newText;
+      saveTodosToLocalStorage();
+      displayTodos();
+    }
+
+    function updateCompletedText(index, newText) {
+      completedTodos[index].text = newText;
+      saveCompletedTodosToLocalStorage();
+      displayTodos();
+    }
+
+    function toggleDoneInTodoRoute(index) {
+      const todo = completedTodos.splice(index, 1)[0];
+      todo.done = false;
+      todos.push(todo);
+      saveTodosToLocalStorage();
+      saveCompletedTodosToLocalStorage();
+      displayTodos();
+    }
+
+    function toggleDoneInDoneRoute(index) {
+      const todo = todos.splice(index, 1)[0];
+      todo.done = true;
+      completedTodos.push(todo);
+      saveTodosToLocalStorage();
+      saveCompletedTodosToLocalStorage();
+      displayTodos();
+    }
+
+    function clearTodos() {
+      todos = [];
+      completedTodos = [];
+      saveTodosToLocalStorage();
+      saveCompletedTodosToLocalStorage();
+      displayTodos();
+    }
+
+    displayTodos();
+  </script>
+</body>
+
+</html>
